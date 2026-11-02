@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마니띠 미션!</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F2EC; --ink:#121212; --lime:#C6F432; --muted:#77736A; --line:#E2DED4; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans KR',system-ui,sans-serif; background:var(--bg); color:var(--ink); display:flex; justify-content:center; -webkit-font-smoothing:antialiased}
+  main{width:100%; max-width:420px; padding:28px 18px 48px}
+
+  .top{display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:500}
+  .to{background:var(--ink); color:var(--lime); padding:6px 12px; border-radius:999px; font-weight:700}
+  .week{color:var(--muted)}
+  h1{font-size:46px; font-weight:900; letter-spacing:-2px; line-height:1.05; margin:18px 0 8px}
+  h1 em{font-style:normal; background:linear-gradient(transparent 58%, var(--lime) 58%)}
+  .sub{font-size:15px; color:var(--muted)}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:22px; margin-top:16px; padding:16px}
+  .letter{margin-top:20px}
+  .stage{background:#EFECE4; border-radius:16px; position:relative; overflow:hidden}
+  .stage svg{display:block; width:100%; height:auto}
+  .phase{position:absolute; top:12px; left:12px; font-size:13px; font-weight:700; background:#fff; color:var(--ink); padding:5px 11px; border-radius:999px; transition:.15s}
+  .phase.jump{background:var(--ink); color:var(--lime)}
+  .label{position:absolute; top:14px; right:14px; font-size:11px; font-weight:700; letter-spacing:2px; color:#B5B0A4}
+
+  .mission{margin-top:16px; display:flex; justify-content:space-between; align-items:flex-end}
+  .mission .eng{font-size:11px; letter-spacing:2px; font-weight:700; color:var(--muted)}
+  .mission .name{font-size:26px; font-weight:900; letter-spacing:-1px}
+  .stats{display:flex; gap:6px}
+  .stat{border:1px solid var(--line); border-radius:12px; padding:6px 10px; text-align:center}
+  .stat b{display:block; font-size:17px; font-weight:900}
+  .stat span{font-size:11px; color:var(--muted)}
+  .tips{list-style:none; margin-top:16px; border-top:1px solid var(--line); padding-top:12px; display:grid; gap:8px; counter-reset:t}
+  .tips li{font-size:14px; display:flex; gap:10px; align-items:center; counter-increment:t}
+  .tips li::before{content:counter(t); width:22px; height:22px; flex:none; border-radius:50%; background:var(--lime); font-size:12px; font-weight:900; display:grid; place-items:center}
+
+  .tracker{background:var(--ink); color:#fff; border:none; text-align:center; padding:20px 16px}
+  .sets{display:flex; justify-content:center; gap:8px; margin-bottom:14px}
+  .dot{width:60px; height:6px; border-radius:3px; background:#333; transition:.2s}
+  .dot.now{background:#fff}
+  .dot.done{background:var(--lime)}
+  .setlabel{font-size:13px; color:#9A968D; font-weight:500}
+  .count{font-size:76px; font-weight:900; letter-spacing:-3px; line-height:1.05}
+  .count small{font-size:26px; color:#666; letter-spacing:0}
+  .status{margin-top:4px; font-size:14px; color:#9A968D; min-height:20px}
+  .btns{display:flex; gap:8px; margin-top:18px}
+  button{flex:1; font-family:inherit; font-size:17px; font-weight:700; border:none; border-radius:14px; padding:15px 0; cursor:pointer; transition:transform .08s}
+  button:active{transform:scale(.98)}
+  .primary{background:var(--lime); color:var(--ink)}
+  .ghost{background:#2A2A2A; color:#fff; flex:.45}
+  .done-msg{display:none}
+  .done-msg .big{font-size:30px; font-weight:900; color:var(--lime); margin:8px 0 6px}
+  .done-msg p{font-size:14px; color:#9A968D}
+
+  .letter{padding:24px 22px 26px; background:#FFFDF7}
+  .letter .to2{font-family:'Gaegu',cursive; font-weight:700; font-size:28px; line-height:1}
+  .letter .body{font-family:'Gaegu',cursive; font-weight:700; font-size:21px; line-height:1.6; margin-top:14px; white-space:pre-line; word-break:keep-all; color:#1A1A1A}
+  .letter .body b{background:linear-gradient(transparent 55%, var(--lime) 55%); font-weight:700}
+  .letter .sign{font-family:'Gaegu',cursive; font-weight:700; font-size:20px; text-align:right; margin-top:10px; color:#2B2B2B}
+
+  .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden}
+  .confetti i{position:absolute; top:-12px; width:8px; height:12px; border-radius:2px; animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><span class="to">MANITTI MISSION</span><span class="week">이번 주 미션</span></div>
+  <h1>마니띠 <em>미션!</em></h1>
+
+  <section class="card letter">
+    <div class="to2">To. 경준님</div>
+    <div class="body">안녕하세요, 경준님 마니또 입니다 🙌
+작은 선물과 함께 운동 미션 공개합니다! 🎁
+<b>점프 스쿼트 10회씩 3세트!</b> 💪
+저널에 인증 해주실거죠? 📸
+끝까지 힘내십쇼! 🔥</div>
+    <div class="sign">- 마니또 -</div>
+  </section>
+
+  <section class="card">
+    <div class="stage">
+      <span class="phase" id="phase">앉고</span>
+      <span class="label">DEMO</span>
+      <svg id="svg" viewBox="0 0 300 320" aria-label="점프 스쿼트 동작 시연"></svg>
+    </div>
+    <div class="mission">
+      <div><div class="eng">JUMP SQUAT</div><div class="name">점프 스쿼트</div></div>
+      <div class="stats">
+        <div class="stat"><b>10</b><span>회</span></div>
+        <div class="stat"><b>3</b><span>세트</span></div>
+      </div>
+    </div>
+    <ol class="tips">
+      <li>발은 어깨너비, 엉덩이는 뒤로</li>
+      <li>팔을 힘차게 올리며 점프</li>
+      <li>착지는 사뿐히, 무릎 살짝 굽혀서</li>
+    </ol>
+  </section>
+
+  <section class="card tracker">
+    <div id="run">
+      <div class="sets"><span class="dot now" id="s0"></span><span class="dot" id="s1"></span><span class="dot" id="s2"></span></div>
+      <div class="setlabel" id="setlabel">SET 1 / 3</div>
+      <div class="count" id="count">0<small> / 10</small></div>
+      <div class="status" id="status">준비되면 시작을 눌러주세요</div>
+      <div class="btns">
+        <button class="primary" id="main">미션 시작</button>
+        <button class="ghost" id="tap" style="display:none">+1</button>
+      </div>
+    </div>
+    <div class="done-msg" id="done">
+      <div style="font-size:40px">🏆</div>
+      <div class="big">미션 완료!</div>
+      <p>30개 점프, 수고 많으셨어요 👏</p>
+      <div class="btns"><button class="ghost" id="again" style="flex:1">다시 하기</button></div>
+    </div>
+  </section>
+
+</main>
+<div class="confetti" id="confetti"></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = $('svg');
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+  const ease = t => t<.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+
+  const SKIN='#F2C6A2', HAIR='#2A211C', SHIRT='#C6F432', SHORTS='#1E1E1E', SHOE='#121212', CX=150, GROUND=300;
+
+  // ---- build figure ----
+  mk('line',{x1:30,y1:GROUND+1,x2:270,y2:GROUND+1,stroke:'#DCD7CB','stroke-width':2,'stroke-linecap':'round'});
+  const shadow = mk('ellipse',{cx:CX,cy:GROUND+3,rx:52,ry:6,fill:'#121212',opacity:.1});
+  const leg = [0,1].map(()=>mk('path',{fill:'none',stroke:SKIN,'stroke-width':15,'stroke-linecap':'round','stroke-linejoin':'round'}));
+  const shoe = [0,1].map(()=>mk('rect',{width:28,height:12,rx:6,fill:SHOE}));
+  const shorts = mk('path',{fill:SHORTS,'stroke-linejoin':'round'});
+  const neck = mk('rect',{width:14,height:14,rx:4,fill:SKIN});
+  const torso = mk('path',{fill:SHIRT});
+  const head = mk('circle',{r:22,fill:SKIN});
+  const hair = mk('path',{fill:HAIR});
+  const eyeL = mk('circle',{r:2.4,fill:'#2A211C'}), eyeR = mk('circle',{r:2.4,fill:'#2A211C'});
+  const mouth = mk('path',{fill:'none',stroke:'#2A211C','stroke-width':2.2,'stroke-linecap':'round'});
+  const cheekL = mk('circle',{r:3.5,fill:'#F49A86',opacity:.5}), cheekR = mk('circle',{r:3.5,fill:'#F49A86',opacity:.5});
+  const arm = [0,1].map(()=>mk('path',{fill:'none',stroke:SKIN,'stroke-width':12,'stroke-linecap':'round','stroke-linejoin':'round'}));
+  const sleeve = [0,1].map(()=>mk('path',{fill:'none',stroke:SHIRT,'stroke-width':17,'stroke-linecap':'round'}));
+  const hand = [0,1].map(()=>mk('circle',{r:7,fill:SKIN}));
+
+  // keyframes: [t, squat depth, hand dx (outward +), hand dy (from shoulder, down +)]
+  const KF = [
+    [0.00, 0,    10,  60],
+    [0.32, 1,   -12,  26],
+    [0.43, 0.1,  22,  42],
+    [0.47, 0,    30,  44],
+    [0.60, 0,    32,  42],
+    [0.73, 0,    22,  48],
+    [0.86, 0.65,-12,  26],
+    [1.00, 0,    10,  60],
+  ];
+  const CYCLE = 2600;
+
+  function pose(t){
+    let i = 0;
+    while (i < KF.length-2 && t > KF[i+1][0]) i++;
+    const a = KF[i], b = KF[i+1];
+    const u = ease(Math.min(1, Math.max(0, (t-a[0])/(b[0]-a[0]))));
+    const L = k => a[k] + (b[k]-a[k])*u;
+    let h = 0;
+    if (t > 0.45 && t < 0.73) h = Math.sin(Math.PI*(t-0.45)/0.28) * 46;
+    return {d:L(1), hx:L(2), hy:L(3), h};
+  }
+  function phaseName(t){
+    return (t < 0.36 || t >= 0.9) ? ['앉고', false] : ['점프!', true];
+  }
+
+  const f = n => n.toFixed(1);
+  function draw(t){
+    const p = pose(t), d = p.d;
+    const ay = GROUND - 10 - p.h;
+    const kneeY = ay - 60*(1 - 0.08*d);
+    const hipY  = kneeY - 60*(1 - 0.78*d);
+    const shY   = hipY - 74*(1 - 0.12*d);
+    const J = {};
+    [-1,1].forEach((s,i)=>{
+      const ax = CX + s*(26 + 4*d), kx = CX + s*(28 + 18*d), hx = CX + s*15;
+      J[i] = {ax, kx, hx};
+      leg[i].setAttribute('d', `M${f(hx)} ${f(hipY)} L${f(kx)} ${f(kneeY)} L${f(ax)} ${f(ay)}`);
+      shoe[i].setAttribute('x', f(ax - 14 + s*3)); shoe[i].setAttribute('y', f(ay - 2));
+    });
+    // shorts: waist to ~45% down the thigh
+    const m = (a,b,k)=>a+(b-a)*k;
+    const tlx = m(J[0].hx, J[0].kx, .45), tly = m(hipY, kneeY, .45);
+    const trx = m(J[1].hx, J[1].kx, .45);
+    shorts.setAttribute('d',
+      `M${f(CX-24)} ${f(hipY-10)} L${f(CX+24)} ${f(hipY-10)} L${f(trx+11)} ${f(tly)} L${f(trx-10)} ${f(tly+2)} L${CX} ${f(hipY+8)} L${f(tlx+10)} ${f(tly+2)} L${f(tlx-11)} ${f(tly)} Z`);
+    // torso
+    const w1 = 21, w2 = 28, wy = hipY - 4;
+    torso.setAttribute('d',
+      `M${f(CX-w1)} ${f(wy)} L${f(CX-w2)} ${f(shY+10)} Q${f(CX-w2)} ${f(shY)} ${f(CX-w2+10)} ${f(shY)} L${f(CX+w2-10)} ${f(shY)} Q${f(CX+w2)} ${f(shY)} ${f(CX+w2)} ${f(shY+10)} L${f(CX+w1)} ${f(wy)} Z`);
+    neck.setAttribute('x', CX-7); neck.setAttribute('y', f(shY-12));
+    const hy = shY - 30;
+    head.setAttribute('cx', CX); head.setAttribute('cy', f(hy));
+    hair.setAttribute('d', `M${CX-23} ${f(hy-1)} A23 23 0 0 1 ${CX+23} ${f(hy-1)} Q${CX+12} ${f(hy-12)} ${CX-4} ${f(hy-9)} Q${CX-14} ${f(hy-7)} ${CX-23} ${f(hy-1)} Z`);
+    eyeL.setAttribute('cx', CX-8); eyeL.setAttribute('cy', f(hy+3));
+    eyeR.setAttribute('cx', CX+8); eyeR.setAttribute('cy', f(hy+3));
+    cheekL.setAttribute('cx', CX-14); cheekL.setAttribute('cy', f(hy+10));
+    cheekR.setAttribute('cx', CX+14); cheekR.setAttribute('cy', f(hy+10));
+    const open = p.h > 8;
+    mouth.setAttribute('d', open
+      ? `M${CX-5} ${f(hy+10)} Q${CX} ${f(hy+17)} ${CX+5} ${f(hy+10)} Z`
+      : `M${CX-5} ${f(hy+11)} Q${CX} ${f(hy+15)} ${CX+5} ${f(hy+11)}`);
+    mouth.setAttribute('fill', open ? '#2A211C' : 'none');
+    // arms
+    [-1,1].forEach((s,i)=>{
+      const sx = CX + s*22, sy = shY + 7;
+      const hx = sx + s*p.hx, hyy = sy + p.hy;
+      const mx = (sx+hx)/2, my = (sy+hyy)/2;
+      const len = Math.hypot(hx-sx, hyy-sy) || 1;
+      const bend = Math.max(0, (62 - len)) * 0.55 + 4;
+      const ex = mx + s*bend, ey = my;
+      arm[i].setAttribute('d', `M${f(sx)} ${f(sy)} L${f(ex)} ${f(ey)} L${f(hx)} ${f(hyy)}`);
+      sleeve[i].setAttribute('d', `M${f(sx)} ${f(sy)} L${f(m(sx,ex,.35))} ${f(m(sy,ey,.35))}`);
+      hand[i].setAttribute('cx', f(hx)); hand[i].setAttribute('cy', f(hyy));
+    });
+    const k = 1 - p.h/110;
+    shadow.setAttribute('rx', f(52*k)); shadow.setAttribute('opacity', (.1*k).toFixed(3));
+  }
+
+  // ---- tracker ----
+  const REPS = 10, SETS = 3, REST = 30;
+  let state = 'idle', set = 0, rep = 0, restLeft = 0, cycleStart = 0, restStart = 0;
+
+  function render(){
+    for (let i=0;i<SETS;i++) $('s'+i).className = 'dot' + (i<set ? ' done' : i===set ? ' now' : '');
+    $('setlabel').textContent = state==='rest' ? `SET ${set} 완료 · 휴식` : `SET ${set+1} / ${SETS}`;
+    $('count').innerHTML = state==='rest' ? restLeft + '<small> 초</small>' : rep + '<small> / ' + REPS + '</small>';
+    $('status').textContent = ({idle:'준비되면 시작을 눌러주세요', go:'캐릭터를 따라 같이 점프!', pause:'잠시 멈춤', rest:'물 한 모금 마시고 오세요'})[state] || '';
+    $('main').textContent = ({idle:'미션 시작', go:'일시정지', pause:'계속하기', rest:'바로 다음 세트'})[state] || '';
+    $('tap').style.display = (state==='go'||state==='pause') ? '' : 'none';
+  }
+  function addRep(){
+    rep++;
+    if (rep >= REPS){
+      set++; rep = 0;
+      if (set >= SETS){ finish(); return; }
+      state = 'rest'; restLeft = REST; restStart = performance.now();
+    }
+    render();
+  }
+  function startSet(){ state = 'go'; cycleStart = performance.now(); render(); }
+  function finish(){
+    state = 'done'; $('run').style.display = 'none'; $('done').style.display = 'block';
+    const box = $('confetti'), colors = ['#C6F432','#121212','#F2C6A2','#FFFFFF'];
+    for (let i=0;i<60;i++){
+      const c = document.createElement('i');
+      c.style.left = Math.random()*100 + 'vw';
+      c.style.background = colors[i%colors.length];
+      c.style.animationDuration = (1.8 + Math.random()*1.6) + 's';
+      c.style.animationDelay = (Math.random()*.6) + 's';
+      box.appendChild(c);
+    }
+    setTimeout(()=>{ box.innerHTML=''; }, 4500);
+  }
+  $('main').addEventListener('click', ()=>{
+    if (state==='go'){ state='pause'; render(); } else if (state!=='done') startSet();
+  });
+  $('tap').addEventListener('click', addRep);
+  $('again').addEventListener('click', ()=>{
+    set=0; rep=0; state='idle'; $('done').style.display='none'; $('run').style.display='block'; render();
+  });
+
+  const t0 = performance.now();
+  function loop(now){
+    let t;
+    if (state==='go'){
+      if (now - cycleStart >= CYCLE){ cycleStart += CYCLE; addRep(); }
+      t = ((now - cycleStart) % CYCLE) / CYCLE;
+    } else if (state==='rest' || state==='pause'){
+      t = 0;
+      if (state==='rest'){
+        const left = Math.max(0, REST - Math.floor((now - restStart)/1000));
+        if (left !== restLeft){ restLeft = left; render(); }
+        if (left <= 0) startSet();
+      }
+    } else {
+      t = ((now - t0) % CYCLE) / CYCLE;
+    }
+    draw(t);
+    const ph = $('phase');
+    if (state==='rest' || state==='pause'){ ph.textContent='쉬는 중'; ph.className='phase'; }
+    else { const [n,j] = phaseName(t); ph.textContent = n; ph.className = 'phase' + (j?' jump':''); }
+    requestAnimationFrame(loop);
+  }
+  render(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
